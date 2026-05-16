@@ -1,0 +1,13 @@
+# Environment & secrets — never commit these
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Temp files
+/tmp/
+*.log
