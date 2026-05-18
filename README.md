@@ -8,20 +8,23 @@ Run a **multimodal LLM server** (text + images) on a free Kaggle GPU and connect
 
 ## How it works
 
-```
-┌─────────────────────────────────────────────────────┐
-│                  Kaggle GPU Server                  │
-│                                                     │
-│   llama-server (Qwen3.6 + mmproj vision)            │
-│        ↕  localhost:8080                            │
-│   Cloudflare Tunnel                                 │
-│        ↕  https://xxxx.trycloudflare.com            │
-└─────────────────────────────────────────────────────┘
-               ↕  internet
-┌─────────────────────────────────────────────────────┐
-│  Your machine — any OpenAI-compatible client        │
-│  chat.py · Open WebUI · Chatbox · Python SDK...    │
-└─────────────────────────────────────────────────────┘
+```mermaid
+graph LR
+    subgraph Kaggle["🖥️ Kaggle GPU Server"]
+        llama["llama-server\nOpenAI-Compatible API\nlocalhost:8080"]
+        model["Qwen3.6 35B-A3B\nUD-Q4_K_XL · 22 GB\nmmproj vision projector"]
+    end
+
+    cf["☁️ Cloudflare Tunnel\nhttps://xxxx.trycloudflare.com"]
+
+    subgraph Client["💻 Your Machine"]
+        chat["chat.py"]
+        sdk["Python SDK · LangChain"]
+        webui["Open WebUI · Any client"]
+    end
+
+    Kaggle -->|"tunnel"| cf
+    cf -->|"HTTPS"| Client
 ```
 
 The server exposes a standard **OpenAI-compatible API** (`/v1/chat/completions`).
@@ -33,7 +36,7 @@ Any client that works with OpenAI works here — just point it to the Cloudflare
 
 | Tool | Role | Why not the alternative? |
 |---|---|---|
-| `llama.cpp` | Inference engine | Ollama can't load Qwen3.6's separate `mmproj` vision file |
+| `llama.cpp` | Inference engine | More precise GPU control (`-ngl`), less memory overhead than wrappers |
 | Cloudflare Tunnel | Public URL | Ngrok has request limits and cuts long token streams |
 | Kaggle | Free GPU | Colab disconnects after ~1.5h; Kaggle runs 12h straight |
 
@@ -71,7 +74,7 @@ This downloads `Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf` (~22.4 GB) and `mmproj-F16.gguf
 ### Step 2 — Compile llama.cpp
 
 1. Create a new notebook, upload `1b_setup_llama.ipynb`
-2. Settings: **Internet ON**, **GPU T4 x1**
+2. Settings: **Internet ON**, **GPU T4 x2**
 3. Fill in your Kaggle username in Cell 1
 4. Run All
 
@@ -297,12 +300,12 @@ curl https://xxxx.trycloudflare.com/v1/chat/completions \
 
 ## GPU & performance
 
-| Kaggle GPU | VRAM | Model fit | Speed |
-|---|---|---|---|
-| 1x P100 | 16 GB | Partial (hybrid GPU+RAM) | ~6–9 tok/s |
-| **2x T4 ✅ recommended** | **30 GB** | **Full GPU** | **~15–20 tok/s** |
+| Kaggle GPU | VRAM | Speed |
+|---|---|---|
+| **2x T4 ✅ recommended** | **30 GB** | **~15–20 tok/s** |
+| 1x P100 (default allocation) | 16 GB | ~6–9 tok/s (hybrid GPU+RAM) |
 
-Select **GPU T4 x2** in Kaggle settings before running.
+Select **GPU T4 x2** in Kaggle settings before running for best performance.
 
 ---
 
@@ -334,7 +337,7 @@ Re-run `1b_setup_llama.ipynb`. Cell 4 detects the existing dataset and creates a
 → The server process crashed. Check Cell 5 logs — reduce `CTX_SIZE` (try `8192`) or switch to 2x T4.
 
 **Slow responses**
-→ You're on a single GPU (hybrid mode). Switch to **GPU T4 x2** in Kaggle accelerator settings.
+→ You're on P100 (hybrid mode). Switch to **GPU T4 x2** in Kaggle accelerator settings.
 
 ---
 
