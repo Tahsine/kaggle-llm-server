@@ -55,6 +55,21 @@ Any client that works with OpenAI works here — just point it to the Cloudflare
 
 ---
 
+## ⚡ Quick start with public datasets
+
+Want to skip the 45-minute setup? Use the pre-built public datasets directly.
+
+Instead of running notebooks 1 and 1b, just attach these datasets to `2_run_server.ipynb`:
+
+- **Model** → search `qwen36-35b-a3b-gguf` by `tahsinekajolasalami`
+- **Binaries** → search `llama-cpp-bin` by `tahsinekajolasalami`
+
+> ⚠️ The binaries dataset is compiled for Kaggle's T4 GPU environment.
+> If Kaggle updates their base image and you get errors, run `1b_setup_llama.ipynb`
+> to recompile and create your own dataset. Leave a comment if this happens — I'll update it.
+
+---
+
 ## Setup (one time only)
 
 ### Step 1 — Download the model
@@ -316,6 +331,36 @@ Select **GPU T4 x2** in Kaggle settings before running for best performance.
 - Model and binaries: stored permanently in your Kaggle Datasets (free, counts toward 100 GB quota)
 
 When the 12h session expires, re-run `2_run_server.ipynb`. Startup takes ~5–6 minutes (model loading only — no recompilation).
+
+---
+
+## 💡 Keep the server alive for 12 hours (headless mode)
+
+By default, Kaggle cuts your session after ~40 minutes of browser inactivity — even if the notebook is still running.
+
+**The fix: use Save Version instead of Run All.**
+
+1. In `2_run_server.ipynb`, instead of clicking **Run All**, click **Save Version** (top right)
+2. Choose **Save and Run All (Commit)**
+3. Click **Save**
+
+Kaggle will run the notebook as a background task. You can now:
+- Close the browser tab
+- Shut down your PC
+- Leave for up to 12 hours
+
+The server stays online. To get the Cloudflare URL:
+1. Go back to the notebook page
+2. Click **View active events** (or check the output logs)
+3. The URL appears in the logs exactly as in interactive mode
+
+**To stop the server early:**
+1. Open the notebook on Kaggle
+2. Click **View Active Events**
+3. Click **Stop**
+
+**To restart after stopping:**
+Click **Save Version** → **Save and Run All (Commit)** → **Save** again.
 
 ---
 
